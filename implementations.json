@@ -283,7 +283,41 @@
           }
         }
       }
+    },
+
+    "red5": {
+      "name": "red5",
+      "organization": "Red5",
+      "repository": "https://github.com/red5pro/red5-moq-relay",
+      "draft_versions": ["draft-14", "draft-16"],
+      "notes": "Java implementation using picoquic. Supports multiple draft versions simultaneously via version negotiation.",
+      "roles": {
+        "relay": {
+          "docker": {
+            "image": "red5pro/moq-relay:latest",
+            "build": {
+              "dockerfile": "adapters/red5/Dockerfile.relay",
+              "context": "adapters/red5"
+            }
+          },
+          "remote": [
+            {
+              "url": "https://moq-relay.red5.net:4433/moq",
+              "transport": "webtransport",
+              "tls_disable_verify": false,
+              "notes": "WebTransport endpoint"
+            },
+            {
+              "url": "moqt://moq-relay.red5.net:8443",
+              "transport": "quic",
+              "tls_disable_verify": true,
+              "notes": "Raw QUIC endpoint"
+            }
+          ]
+        }
+      }
     }
+
   },
 
   "_comment_how_to_add": [

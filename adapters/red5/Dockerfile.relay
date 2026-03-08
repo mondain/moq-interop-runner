@@ -1,0 +1,32 @@
+# Moxygen adapter for MoQT interop testing
+#
+# Wraps the official moxygen relay image with standard interop conventions:
+# - Reads certs from /certs/cert.pem and /certs/priv.key
+# - Maps our /certs mount to moxygen's expected env vars
+#
+# The upstream moxygen image uses environment variables CERT_FILE and KEY_FILE
+# to configure certificate paths. We override these to match our naming convention
+# (cert.pem/priv.key) instead of the upstream defaults (certificate.pem/certificate.key).
+#
+# Build:
+#   docker build -t moxygen-interop:latest -f adapters/moxygen/Dockerfile.relay adapters/moxygen/
+#
+# Usage:
+#   docker run -v ./certs:/certs -p 4443:4443/udp moxygen-interop:latest
+
+FROM red5pro/moq-relay:latest
+
+LABEL maintainer="Red5 <paul@red5.net>"
+
+# Map our /certs convention to red5's expected vars
+ENV MOQ_RELAY_PORT=8433
+ENV MOQ_RELAY_WTPORT=4443
+# Override cert paths to match our naming convention (cert.pem, priv.key)
+ENV CERTIFICATE_FILE_PATH=/certs/cert.pem
+ENV PRIVATE_KEY_FILE_PATH=/certs/priv.key
+
+EXPOSE 4443/udp 8433/udp
+
+# Custom healthcheck: check /proc/net/udp for port 4443 (0x115B in hex).
+HEALTHCHECK --interval=2s --timeout=5s --start-period=5s --retries=10 \
+    CMD grep -qi ":115B" /proc/net/udp || exit 1
